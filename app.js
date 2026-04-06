@@ -211,44 +211,71 @@ function getDatesForJu(year, ju) {
     return dates;
 }
 
-// Helper for 72 Pentads (72후)
+// Helper for 72 Pentads (72후) - global sequential numbering 1~72
 function getPentadStr(targetDate) {
-    const y = targetDate.getFullYear();
-    const termMap = [
-        ['1-5', '소한'], ['1-20', '대한'], ['2-4', '입춘'], ['2-18', '우수'], 
-        ['3-5', '경칩'], ['3-20', '춘분'], ['4-5', '청명'], ['4-20', '곡우'], 
-        ['5-5', '입하'], ['5-21', '소만'], ['6-6', '망종'], ['6-21', '하지'], 
-        ['7-7', '소서'], ['7-23', '대서'], ['8-7', '입추'], ['8-23', '처서'], 
-        ['9-7', '백로'], ['9-23', '추분'], ['10-8', '한로'], ['10-23', '상강'], 
-        ['11-7', '입동'], ['11-22', '소설'], ['12-7', '대설'], ['12-22', '동지']
+    // 24 solar terms in traditional order starting from 동지 (term index 0 = 동지)
+    const TERM_ORDER = [
+        '동지', '소한', '대한', '입춘', '우수', '경칩', '춘분', '청명', '곡우',
+        '입하', '소만', '망종', '하지', '소서', '대서', '입추', '처서', '백로',
+        '추분', '한로', '상강', '입동', '소설', '대설'
     ];
+
+    const y = targetDate.getFullYear();
+    // Build a flat list of all term dates for y-1 through y+1 in chronological order
+    const termDatesRaw = [
+        { name: '동지', m: 12, d: 22 }, { name: '소한', m: 1, d: 5 },
+        { name: '대한', m: 1, d: 20 }, { name: '입춘', m: 2, d: 4 },
+        { name: '우수', m: 2, d: 18 }, { name: '경칩', m: 3, d: 5 },
+        { name: '춘분', m: 3, d: 20 }, { name: '청명', m: 4, d: 5 },
+        { name: '곡우', m: 4, d: 20 }, { name: '입하', m: 5, d: 5 },
+        { name: '소만', m: 5, d: 21 }, { name: '망종', m: 6, d: 6 },
+        { name: '하지', m: 6, d: 21 }, { name: '소서', m: 7, d: 7 },
+        { name: '대서', m: 7, d: 23 }, { name: '입추', m: 8, d: 7 },
+        { name: '처서', m: 8, d: 23 }, { name: '백로', m: 9, d: 7 },
+        { name: '추분', m: 9, d: 23 }, { name: '한로', m: 10, d: 8 },
+        { name: '상강', m: 10, d: 23 }, { name: '입동', m: 11, d: 7 },
+        { name: '소설', m: 11, d: 22 }, { name: '대설', m: 12, d: 7 }
+    ];
+
+    // Build array spanning y-1 to y+1
     let arr = [];
-    arr.push({ name: '대설', date: new Date(y - 1, 11, 7) });
-    arr.push({ name: '동지', date: new Date(y - 1, 11, 22) });
-    for (let [dateStr, name] of termMap) {
-        let [m, d] = dateStr.split('-');
-        arr.push({ name: name, date: new Date(y, parseInt(m) - 1, parseInt(d)) });
+    for (let yr = y - 1; yr <= y + 1; yr++) {
+        for (let t of termDatesRaw) {
+            const actualYear = (t.m === 12 && t.name === '동지') ? yr : (t.m <= 2 ? yr : yr);
+            const d = new Date(yr, t.m - 1, t.d);
+            arr.push({ name: t.name, date: d });
+        }
     }
-    arr.push({ name: '소한', date: new Date(y + 1, 0, 5) });
-    arr.push({ name: '대한', date: new Date(y + 1, 0, 20) });
-    
+    arr.sort((a, b) => a.date - b.date);
+
+    const targetTime = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate()).getTime();
+
     let currentTerm = arr[0];
-    const targetTime = new Date(y, targetDate.getMonth(), targetDate.getDate()).getTime();
-    
+    let currentTermIdx = 0;
     for (let i = 0; i < arr.length; i++) {
         if (arr[i].date.getTime() <= targetTime) {
             currentTerm = arr[i];
+            currentTermIdx = i;
         } else {
             break;
         }
     }
-    
+
     const diffDays = Math.round((targetTime - currentTerm.date.getTime()) / 86400000);
-    let pentadName = '초후';
-    if (diffDays >= 5 && diffDays <= 9) pentadName = '중후';
-    else if (diffDays >= 10) pentadName = '말후';
-    
-    return `${currentTerm.name} ${pentadName}`;
+    let pentadOffset = 0; // 초후 (days 0-4)
+    let dayInPentad = diffDays + 1; // 1-based within the 5-day window
+
+    if (diffDays >= 5 && diffDays <= 9) {
+        pentadOffset = 1; // 중후
+        dayInPentad = diffDays - 5 + 1;
+    } else if (diffDays >= 10) {
+        pentadOffset = 2; // 말후
+        dayInPentad = diffDays - 10 + 1;
+    }
+    if (dayInPentad > 5) dayInPentad = 5; // cap at 5
+
+    const pentadLabels = ['초후', '중후', '말후'];
+    return `${currentTerm.name} ${pentadLabels[pentadOffset]}${dayInPentad}`;
 }
 
 function getDayMeta(date) {
