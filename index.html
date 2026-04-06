@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>庚元曆 — 엑셀형 만세력</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700;900&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>庚元曆</h1>
+            <p>전통 역학 시스템과 현대 양력이 완벽하게 동기화된 6주 360역(易) 방식의 엑셀형 만세력 표입니다.</p>
+        </header>
+
+        <div class="year-controls">
+            <div class="control-group">
+                <button id="btn-prev-year" class="ju-tab">◀</button>
+                <span id="display-year" class="control-display"></span>
+                <button id="btn-next-year" class="ju-tab">▶</button>
+            </div>
+            <div class="control-group">
+                <button id="btn-prev-month" class="ju-tab">◀</button>
+                <span id="display-month" class="control-display"></span>
+                <button id="btn-next-month" class="ju-tab">▶</button>
+            </div>
+            <div class="control-group">
+                <button id="btn-prev-day" class="ju-tab">◀</button>
+                <span id="display-day" class="control-display"></span>
+                <button id="btn-next-day" class="ju-tab">▶</button>
+            </div>
+        </div>
+
+        <div class="tabs-container" id="ju-tabs">
+            <!-- Dynamically generated Ju tabs -->
+        </div>
+
+        <div class="almanac-root" id="almanac-root">
+            <!-- Dynamically generated Excel Grid -->
+        </div>
+
+        <div class="footer-meta">
+            <div class="meta-row">
+                <div class="meta-label">歷元(역원)</div>
+                <div class="meta-val">12월22일경인 冬至(동지)를 역법 계산의 기준점</div>
+                <div class="meta-label">歲首(세수) 설</div>
+                <div class="meta-val">동지에서 60일째인 雨水(우수)의 다음 날</div>
+            </div>
+            <div class="meta-row">
+                <div class="meta-label">기준점(선천)</div>
+                <div class="meta-val">1944년(갑신) 8월 24일 신시 (음 7월 6일) 갑신</div>
+            </div>
+            <div class="meta-row">
+                <div class="meta-label">기준점(후천)</div>
+                <div class="meta-val">경신년 경신월 경신일 경신시 / 경원 1기 대장주 신시</div>
+            </div>
+            <div class="meta-row">
+                <div class="meta-label">년지 주기</div>
+                <div class="meta-val">사유축(元 1/4), 오술인(亨 2/4), 미해묘(利 3/4), 신자진(貞 4/4 윤년)</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
