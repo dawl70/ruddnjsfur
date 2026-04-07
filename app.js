@@ -135,13 +135,12 @@ const SOLAR_HOLIDAYS = {
     '7-17': '제헌절',
     '8-15': '광복절',
     '10-3': '개천절',
-    '10-9': '한글날',
-    '12-25': '크리스마스'
+    '10-9': '한글날'
 };
 
 const LUNAR_HOLIDAYS = {
     '1.1': '설',
-    '4.8': '부처님 오신날',
+    '4.8': '석탄절',
     '8.15': '추석'
 };
 
@@ -288,17 +287,19 @@ function getDayMeta(date) {
     let lunarFmt = '';
     try {
         const fmt = new Intl.DateTimeFormat('ko-KR-u-ca-chinese', { month: 'numeric', day: 'numeric' });
-        lunarFmt = fmt.format(date).replace('월 ', '.').replace('일', '').trim();
-        // Fallback cleanup "2.19." -> "2.19"
+        lunarFmt = fmt.format(date).replace('월 ', '. ').replace('일', '').trim();
+        // Fallback cleanup "2. 19." -> "2. 19"
         if (lunarFmt.endsWith('.')) lunarFmt = lunarFmt.substring(0, lunarFmt.length - 1);
     } catch (e) { }
 
-    const pureLunar = lunarFmt; // "2.19"
-    const lunarStr = "음" + lunarFmt; // "음2.19"
+    const pureLunar = lunarFmt; // "2. 19"
+    const lunarStr = "음" + lunarFmt; // "음2. 19"
     
     let lunarHol = '';
     if (!pureLunar.includes('윤')) {
-        lunarHol = LUNAR_HOLIDAYS[pureLunar] || '';
+        // "8. 15" -> "8.15"로 정규화하여 매칭
+        const matchKey = pureLunar.replace(/\s/g, '');
+        lunarHol = LUNAR_HOLIDAYS[matchKey] ? `${lunarStr} ${LUNAR_HOLIDAYS[matchKey]}` : '';
     }
 
     // Check terms and holidays
@@ -306,7 +307,9 @@ function getDayMeta(date) {
     const solarTerm = SPECIAL_DAYS_2026[solarKey] || '';
     const solarHol = SOLAR_HOLIDAYS[solarKey] || '';
     
-    const combinedTerms = [solarTerm, solarHol, lunarHol].filter(t => t !== '').join(' ');
+    // 음력 기념일(lunarHol)이 있는 경우, 별도의 combinedTerms를 사용하지 않고 lunarWithTerm에서 직접 처리하거나
+    // 중복 방지를 위해 필터링을 강화합니다.
+    const otherTerms = [solarTerm, solarHol].filter(t => t !== '').join(' ');
     
     const pentadStr = getPentadStr(date);
 
@@ -314,11 +317,11 @@ function getDayMeta(date) {
         rawDate: date,
         solar: `${date.getMonth() + 1}월${date.getDate()}일`,
         lunarOnlyNum: pureLunar,
-        lunarWithTerm: `${lunarStr}${combinedTerms ? ' ' + combinedTerms : ''}`,
+        lunarWithTerm: lunarHol ? lunarHol : `${lunarStr}${otherTerms ? ' ' + otherTerms : ''}`,
         weekDay: KOR_DAY[date.getDay()],
         ganzhiWithTerm: `${dayGanzhi.kr}<br><span style="font-size:0.72em; font-weight:normal; color:#d4af37; letter-spacing:-0.5px;">${pentadStr}</span>`,
         ganzhiHanja: dayGanzhi.hanja,
-        term: combinedTerms,
+        term: lunarHol || otherTerms,
         pentadStr: pentadStr
     };
 }
