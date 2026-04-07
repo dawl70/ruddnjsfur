@@ -73,7 +73,13 @@ const HEAVENLY_STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', 
 const HEAVENLY_STEMS_KR = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'];
 const EARTHLY_BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
 const EARTHLY_BRANCHES_KR = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
-const RRYEOK_MAP_HANJA = { 0: '貞', 1: '元', 2: '亨', 3: '利', 4: '貞', 5: '元', 6: '亨', 7: '利', 8: '貞', 9: '元', 10: '亨', 11: '利' };
+// 년지 주기: 사유축(元 1/4), 오술인(亨 2/4), 미해묘(利 3/4), 신자진(貞 4/4 윤년)
+const RRYEOK_MAP_HANJA = { 
+    5: '元', 9: '元', 1: '元',  // 巳, 酉, 丑 (사유축)
+    6: '亨', 10: '亨', 2: '亨', // 午, 戌, 寅 (오술인)
+    7: '利', 11: '利', 3: '利', // 未, 亥, 卯 (미해묘)
+    8: '貞', 0: '貞', 4: '貞'   // 申, 子, 辰 (신자진)
+};
 const KOR_DAY = ['일', '월', '화', '수', '목', '금', '토'];
 
 const SEQ_60 = HEXAGRAMS.filter(h => ![29, 30, 63, 64].includes(h.num));
@@ -179,6 +185,8 @@ function syncDate() {
 // Return array of 60 consecutive Javascript Date objects for proper Ju
 function getDatesForJu(year, ju) {
     const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    // 32회째 貞曆(2068년) 예외 처리: 윤년이지만 천공역을 5일로 처리
+    const is32ndJeong = (year === 2068);
     const bokStart = isLeap ? 26 : 25;
 
     let baseDate;
@@ -186,9 +194,10 @@ function getDatesForJu(year, ju) {
 
     if (ju === 0) {
         // Cheongong happens at the END of the cycle, falling in Feb of next Gregorian year
-        const nextYearLeap = ((year + 1) % 4 === 0 && (year + 1) % 100 !== 0) || ((year + 1) % 400 === 0);
-        baseDate = new Date(year + 1, 1, 20); // Feb 20
-        daysCount = nextYearLeap ? 6 : 5;
+        const nextYear = year + 1;
+        baseDate = new Date(nextYear, 1, 20); // Feb 20
+        // 해당 연도(year)가 윤년이면 6일, 단 32회째 정력(2068년)은 5일
+        daysCount = (isLeap && !is32ndJeong) ? 6 : 5;
     } else if (ju === 1) { // Bok
         baseDate = new Date(year, 1, bokStart);
     } else if (ju === 2) { // Rim
